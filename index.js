@@ -1,56 +1,44 @@
+// express
 const express = require('express')
 const app = express()
-const mongoose = require('mongoose')
+
+
+
+// config
 require('dotenv').config()
-
-
-var bodyParser = require('body-parser')
-// create application/json parser
-var jsonParser = bodyParser.json()
- 
-// create application/x-www-form-urlencoded parser
-var urlencodedParser = bodyParser.urlencoded({ extended: false })
-
-
-const http = require('http')
-
-// if (process.argv.length < 3) {
-//     console.log('Please provide the password as an argument: node mongo.js <password>')
-//     process.exit(1)
-// }
-
-// const password = process.argv[2]
-
-// const url = `mongodb+srv://Taggedee_Lee:${password}@cluster0.kerst.mongodb.net/?retryWrites=true&w=majority`
-const url = process.env.MONGODB_URI
-
-mongoose
-    .connect(url)
-    .then(() => {
-        console.log("Conected to Database");
-    })
-    .catch((err) => console.log(err))
-
-const dataSchema = new mongoose.Schema({
-    date: Date,
-    CO2: Number,
-    VOC: Number,
-    Temperature: Number,
-    Humidity: Number,
-    PM2_5: Number,
-    PM10: Number,
-})
-
-const DataModel = mongoose.model('Sensor_data', dataSchema)
-
 const node_password = process.env.NODE_PASSWORD
+
+
+// models
+const DataModel = require('./models/data')
+
+
+
+
+// express parsers
+var bodyParser = require('body-parser')
+var jsonParser = bodyParser.json()      // create application/json parser
+var urlencodedParser = bodyParser.urlencoded({ extended: false })   // create application/x-www-form-urlencoded parser
+
 
 app.get('/', (request, response) => {
     response.send('<h1>Hello World!</h1>')
 })
 
-app.get('/api/notes', (request, response) => {
-    response.json(notes)
+app.get('/api/data/:num_inst', (req, res) => {
+    const instances = req.params.num_inst
+    if(instances === undefined){
+        res.status(400).json({error: 'No of instances unspecified'})
+    }
+    if(instances > 60){
+        res.status(400).json({error: 'Too many instances requested, Not possible'})
+    }
+    DataModel.find({}).sort({_id:-1}).limit(instances).then(result => {
+        res.json(result);
+    }).catch(err => {
+        console.log(err);
+        res.json(err);
+    })
 })
 
 app.post('/api/data', jsonParser, (req, res) => {
@@ -84,25 +72,15 @@ app.post('/api/data', jsonParser, (req, res) => {
     })
 })
 
-// app.post('/api/data', jsonParser, (request, response) => {
-//     const body = request.body
-//     console.log(body);
-//     if (body === undefined) {
-//         return response.status(400).json({ error: 'content missing' })
-//     }
 
-//     const note = new Note({
-//         content: body.content,
-//         important: body.important || false,
-//         date: new Date(),
-//     })
-
-//     note.save().then(savedNote => {
-//         response.json(savedNote)
-//     })
-// })
+// middleware 
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' })
+}
+app.use(unknownEndpoint)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
+

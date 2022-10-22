@@ -45,10 +45,10 @@ app.get('/api/data/:num_inst', (req, res) => {
 })
 
 app.post('/api/data', (req, res) => {
+    console.log("req.body" , req)
     if(req.body === undefined){
         return res.status(400).json({ error: 'content missing' })
     }
-    console.log("req.body" , req.body)
     const body = JSON.parse(req.body)
     console.log("body",body)
     if(body.length != 7){

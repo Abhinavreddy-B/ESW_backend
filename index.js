@@ -37,7 +37,7 @@ app.get('/api/data/:num_inst', (req, res) => {
         res.status(400).json({error: 'Too many instances requested, Not possible'})
     }
     DataModel.find({}).sort({_id:-1}).limit(instances).then(result => {
-        res.json(result);
+        res.json(result.reverse());
     }).catch(err => {
         console.log(err);
         res.json(err);

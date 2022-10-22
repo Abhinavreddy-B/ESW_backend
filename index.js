@@ -45,7 +45,7 @@ app.get('/api/data/:num_inst', (req, res) => {
 })
 
 app.post('/api/data',jsonParser, (req, res) => {
-    console.log("req.body" , req)
+    console.log("req.body" , req.body)
     if(req.body === undefined){
         return res.status(400).json({ error: 'content missing' })
     }

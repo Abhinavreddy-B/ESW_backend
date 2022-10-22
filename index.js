@@ -45,11 +45,11 @@ app.get('/api/data/:num_inst', (req, res) => {
 })
 
 app.post('/api/data',jsonParser, (req, res) => {
-    console.log("req.body" , req.body)
+    console.log(req.body)
     if(req.body === undefined){
         return res.status(400).json({ error: 'content missing' })
     }
-    const body = JSON.parse(req.body)
+    const body = req.body
     console.log("body",body)
     if(body.length != 7){
         return res.status(400).json({ error: 'missing parameters/extra data' })

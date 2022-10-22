@@ -48,7 +48,9 @@ app.post('/api/data', (req, res) => {
     if(req.body === undefined){
         return res.status(400).json({ error: 'content missing' })
     }
+    console.log("req.body" , req.body)
     const body = JSON.parse(req.body)
+    console.log("body",body)
     if(body.length != 7){
         return res.status(400).json({ error: 'missing parameters/extra data' })
     }

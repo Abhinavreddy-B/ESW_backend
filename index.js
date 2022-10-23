@@ -127,9 +127,10 @@ app.post('/api/email/', jsonParser, (req, res) => {
     transporter.sendMail(mailOptions).then(() => {
         new_email.save().then(result => {
             console.log('Saved Email , (unverified)');
-            res.status(400).json("Succesfull");
+            res.status(200).json("Succesfull");
         }).catch(err => {
             console.log("Couldnt add to database")
+            res.status(400).json("Succesfull");
             console.log(err)
         })
     }).catch((err) => {

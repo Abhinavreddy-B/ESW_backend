@@ -14,10 +14,23 @@ app.use(cors())
 // config
 require('dotenv').config()
 const node_password = process.env.NODE_PASSWORD
+const gmail_username = process.env.GMAIL_USERNAME
+const gmail_password = process.env.GMAIL_PASSWORD
 
 
 // models
+const mongoose = require('mongoose')
+require('dotenv').config()
+
+const url = process.env.MONGODB_URI
+mongoose
+    .connect(url)
+    .then(() => {
+        console.log("Conected to Database");
+    })
+    .catch((err) => console.log(err))
 const DataModel = require('./models/data')
+const EmailModel = require('./models/email')
 
 
 
@@ -28,19 +41,28 @@ var jsonParser = bodyParser.json()      // create application/json parser
 var urlencodedParser = bodyParser.urlencoded({ extended: false })   // create application/x-www-form-urlencoded parser
 
 
-// app.get('/', (request, response) => {
-//     response.send('<h1>Hello World!</h1>')
-// })
+/// email
+var nodemailer = require('nodemailer')
+let transporter = nodemailer.createTransport({
+    host: "smtp.outlook.com",
+    auth: {
+        user: gmail_username,
+        pass: gmail_password
+    }
+})
+var randomstring = require("randomstring");
+
+
 
 app.get('/api/data/:num_inst', (req, res) => {
     const instances = req.params.num_inst
-    if(instances === undefined){
-        res.status(400).json({error: 'No of instances unspecified'})
+    if (instances === undefined) {
+        res.status(400).json({ error: 'No of instances unspecified' })
     }
-    if(instances > 60){
-        res.status(400).json({error: 'Too many instances requested, Not possible'})
+    if (instances > 60) {
+        res.status(400).json({ error: 'Too many instances requested, Not possible' })
     }
-    DataModel.find({}).sort({_id:-1}).limit(instances).then(result => {
+    DataModel.find({}).sort({ _id: -1 }).limit(instances).then(result => {
         res.json(result.reverse());
     }).catch(err => {
         console.log(err);
@@ -48,17 +70,15 @@ app.get('/api/data/:num_inst', (req, res) => {
     })
 })
 
-app.post('/api/data',jsonParser, (req, res) => {
-    console.log(req.body)
-    if(req.body === undefined){
+app.post('/api/data', jsonParser, (req, res) => {
+    if (req.body === undefined) {
         return res.status(400).json({ error: 'content missing' })
     }
     const body = req.body
-    console.log("body",body)
-    if(body.length != 7){
+    if (body.length != 7) {
         return res.status(400).json({ error: 'missing parameters/extra data' })
     }
-    if(body[0] != node_password){
+    if (body[0] != node_password) {
         return res.status(400).json({ error: 'Authentication Failed' })
     }
     console.log(body);
@@ -81,6 +101,81 @@ app.post('/api/data',jsonParser, (req, res) => {
     })
 })
 
+app.post('/api/email/', jsonParser, (req, res) => {
+    body = req.body
+    console.log(body)
+    if (body === undefined) {
+        res.status(400).json({ err: "missing body" })
+    }
+
+    const new_email = new EmailModel({
+        date: new Date(),
+        email: body.email,
+        Validated: false,
+        Password: randomstring.generate(11),
+        Alt_email: randomstring.generate(11)
+    })
+
+    new_email.save().then(result => {
+        console.log('Saved Email , (unverified)');
+        res.status = 200
+        res.json(result);
+    }).catch(err => {
+        console.log("Couldnt add to database")
+        console.log(err)
+    })
+
+    var mailOptions = {
+        from: gmail_username,
+        to: body.email,
+        subject: 'Verification',
+        text: `Click This To Verify your email http://localhost:3001/api/email/validate/${new_email.Alt_email}/${new_email.Password}`,
+    }
+
+    transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+            console.log(err);
+            res.status(400)
+        } else {
+            console.log("Succesfull email", info.response);
+            res.status(200).json("Done");
+        }
+    })
+
+})
+
+app.get('/api/email/validate/:altemail/:passwd', (req, res) => {
+    const alt_email = req.params.altemail
+    const passwd = req.params.passwd
+    console.log(alt_email,passwd)
+    EmailModel.updateMany({ Alt_email: alt_email, Password: passwd }, {
+        $set: {
+            Validated: true,
+        },
+    }).then((result) => {
+        console.log(result);
+        // var mailOptions = {
+        //     from: gmail_username,
+        //     to: body.email,
+        //     subject: 'Verified',
+        //     text: `Verification Succesfull`,
+        // }
+    
+        // transporter.sendMail(mailOptions, (err, info) => {
+        //     if (err) {
+        //         console.log(err);
+        //         res.status(400)
+        //     } else {
+        //         console.log("Succesfull email", info.response);
+        //     }
+        // })
+
+        res.status(200).json("Verified")
+    }).catch((err) => {
+        console.log(err);
+        res.status(400).json({err: "internal"})
+    })
+})
 
 // middleware 
 const unknownEndpoint = (request, response) => {
@@ -90,6 +185,6 @@ app.use(unknownEndpoint)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+    console.log(`Server running on port ${PORT}`)
 })
 

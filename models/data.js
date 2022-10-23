@@ -1,17 +1,4 @@
-const mongoose = require('mongoose')
-require('dotenv').config()
-
-const url = process.env.MONGODB_URI
-
-
-mongoose
-    .connect(url)
-    .then(() => {
-        console.log("Conected to Database");
-    })
-    .catch((err) => console.log(err))
-
-
+const mongoose=require('mongoose')
 const dataSchema = new mongoose.Schema({
     date: Date,
     CO2: Number,

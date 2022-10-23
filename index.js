@@ -132,16 +132,10 @@ app.post('/api/email/', jsonParser, (req, res) => {
         text: `Click This To Verify your email https://indoor-air-pollution-18.herokuapp.com/api/email/validate/${new_email.Alt_email}/${new_email.Password}`,
     }
 
-    transporter.sendMail(mailOptions, (err, info) => {
-        if (err) {
-            console.log(err);
-            res.status = 400;
-            res.json("Error");
-        } else {
-            console.log("Succesfull email", info.response);
-            res.status = 200;
-            res.json("Done");
-        }
+    transporter.sendMail(mailOptions).then((info) => {
+        console.log("Succesfull email", info.response);
+        res.status = 200;
+        res.json("Done");
     }).catch(() => {
         res.status(400).json("Error")
     })

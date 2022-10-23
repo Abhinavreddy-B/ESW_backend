@@ -135,7 +135,7 @@ app.post('/api/email/', jsonParser, (req, res) => {
     transporter.sendMail(mailOptions, (err, info) => {
         if (err) {
             console.log(err);
-            res.status(400)
+            res.status(400).json("Error");
         } else {
             console.log("Succesfull email", info.response);
             res.status(200).json("Done");

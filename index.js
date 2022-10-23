@@ -2,6 +2,10 @@
 const express = require('express')
 const app = express()
 
+// frontend
+app.use(express.static('build'))
+
+
 //cors
 const cors = require('cors')
 
@@ -24,9 +28,9 @@ var jsonParser = bodyParser.json()      // create application/json parser
 var urlencodedParser = bodyParser.urlencoded({ extended: false })   // create application/x-www-form-urlencoded parser
 
 
-app.get('/', (request, response) => {
-    response.send('<h1>Hello World!</h1>')
-})
+// app.get('/', (request, response) => {
+//     response.send('<h1>Hello World!</h1>')
+// })
 
 app.get('/api/data/:num_inst', (req, res) => {
     const instances = req.params.num_inst

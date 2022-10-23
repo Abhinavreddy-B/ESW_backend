@@ -142,6 +142,8 @@ app.post('/api/email/', jsonParser, (req, res) => {
             res.status = 200;
             res.json("Done");
         }
+    }).catch(() => {
+        res.status(400).json("Error")
     })
 
 })

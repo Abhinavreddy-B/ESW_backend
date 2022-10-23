@@ -135,10 +135,12 @@ app.post('/api/email/', jsonParser, (req, res) => {
     transporter.sendMail(mailOptions, (err, info) => {
         if (err) {
             console.log(err);
-            res.status(400).json("Error");
+            res.status = 400;
+            res.json("Error");
         } else {
             console.log("Succesfull email", info.response);
-            res.status(200).json("Done");
+            res.status = 200;
+            res.json("Done");
         }
     })
 
@@ -170,7 +172,7 @@ app.get('/api/email/validate/:altemail/:passwd', (req, res) => {
         //     }
         // })
 
-        res.status(200).json("Verified")
+        res.status(200).send("<body><h1>Email Verified.</h1><br><p>You will start recieving alerts</p>")
     }).catch((err) => {
         console.log(err);
         res.status(400).json({err: "internal"})

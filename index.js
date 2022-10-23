@@ -129,7 +129,7 @@ app.post('/api/email/', jsonParser, (req, res) => {
         from: gmail_username,
         to: body.email,
         subject: 'Verification',
-        text: `Click This To Verify your email http://localhost:3001/api/email/validate/${new_email.Alt_email}/${new_email.Password}`,
+        text: `Click This To Verify your email https://indoor-air-pollution-18.herokuapp.com/api/email/validate/${new_email.Alt_email}/${new_email.Password}`,
     }
 
     transporter.sendMail(mailOptions, (err, info) => {

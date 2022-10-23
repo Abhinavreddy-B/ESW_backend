@@ -116,15 +116,6 @@ app.post('/api/email/', jsonParser, (req, res) => {
         Alt_email: randomstring.generate(11)
     })
 
-    new_email.save().then(result => {
-        console.log('Saved Email , (unverified)');
-        res.status = 200
-        res.json(result);
-    }).catch(err => {
-        console.log("Couldnt add to database")
-        console.log(err)
-    })
-
     var mailOptions = {
         from: gmail_username,
         to: body.email,
@@ -132,16 +123,18 @@ app.post('/api/email/', jsonParser, (req, res) => {
         text: `Click This To Verify your email https://indoor-air-pollution-18.herokuapp.com/api/email/validate/${new_email.Alt_email}/${new_email.Password}`,
     }
 
-    transporter.sendMail(mailOptions, (err, info) => {
-        if (err) {
-            console.log("Unsuccesfull" , err);
-            res.status(400).json("Error");
-        } else {
-            console.log("Succesfull email", info.response);
-            res.status(200).json("Done");
-        }
+    flag = true;
+    transporter.sendMail(mailOptions).then(() => {
+        new_email.save().then(result => {
+            console.log('Saved Email , (unverified)');
+            res.status(400).json("Succesfull");
+        }).catch(err => {
+            console.log("Couldnt add to database")
+            console.log(err)
+        })
+    }).catch((err) => {
+        res.status(400).json("Error");
     })
-
 })
 
 app.get('/api/email/validate/:altemail/:passwd', (req, res) => {

@@ -108,40 +108,62 @@ app.post('/api/email/', jsonParser, (req, res) => {
         res.status(400).json({ err: "missing body" })
     }
 
-    const new_email = new EmailModel({
-        date: new Date(),
-        email: body.email,
-        Validated: false,
-        Password: randomstring.generate(11),
-        Alt_email: randomstring.generate(11)
-    })
+    EmailModel.find({ email: body.email }).then((result) => {
+        if (result.length === 1) {
+            if (result[0].Validated === true) {
+                res.status(200).json({ "status": 1 })
+            } else {
+                new_email = result[0]
 
-    var mailOptions = {
-        from: gmail_username,
-        to: body.email,
-        subject: 'Verification',
-        text: `Click This To Verify your email https://indoor-air-pollution-18.herokuapp.com/api/email/validate/${new_email.Alt_email}/${new_email.Password}`,
-    }
+                var mailOptions = {
+                    from: gmail_username,
+                    to: body.email,
+                    subject: 'Verification',
+                    text: `Click This To Verify your email https://indoor-air-pollution-18.herokuapp.com/api/email/validate/${new_email.Alt_email}/${new_email.Password}`,
+                }
 
-    flag = true;
-    transporter.sendMail(mailOptions).then(() => {
-        new_email.save().then(result => {
-            console.log('Saved Email , (unverified)');
-            res.status(200).json("Succesfull");
-        }).catch(err => {
-            console.log("Couldnt add to database")
-            res.status(400).json("Succesfull");
-            console.log(err)
-        })
+                transporter.sendMail(mailOptions)
+                res.status(200).json({"status": 2})
+            }
+        } else {
+            const new_email = new EmailModel({
+                date: new Date(),
+                email: body.email,
+                Validated: false,
+                Password: randomstring.generate(11),
+                Alt_email: randomstring.generate(11)
+            })
+
+            var mailOptions = {
+                from: gmail_username,
+                to: body.email,
+                subject: 'Verification',
+                text: `Click This To Verify your email https://indoor-air-pollution-18.herokuapp.com/api/email/validate/${new_email.Alt_email}/${new_email.Password}`,
+            }
+
+            flag = true;
+            transporter.sendMail(mailOptions).then(() => {
+                new_email.save().then(result => {
+                    console.log('Saved Email , (unverified)');
+                    res.status(200).json({"status": 2})
+                }).catch(err => {
+                    console.log("Couldnt add to database")
+                    res.status(400).json("Succesfull");
+                    console.log(err)
+                })
+            }).catch((err) => {
+                res.status(400).json("Error");
+            })
+        }
     }).catch((err) => {
-        res.status(400).json("Error");
+        console.log("find error",err)
     })
 })
 
 app.get('/api/email/validate/:altemail/:passwd', (req, res) => {
     const alt_email = req.params.altemail
     const passwd = req.params.passwd
-    console.log(alt_email,passwd)
+    console.log(alt_email, passwd)
     EmailModel.updateMany({ Alt_email: alt_email, Password: passwd }, {
         $set: {
             Validated: true,
@@ -154,7 +176,7 @@ app.get('/api/email/validate/:altemail/:passwd', (req, res) => {
         //     subject: 'Verified',
         //     text: `Verification Succesfull`,
         // }
-    
+
         // transporter.sendMail(mailOptions, (err, info) => {
         //     if (err) {
         //         console.log(err);
@@ -167,7 +189,7 @@ app.get('/api/email/validate/:altemail/:passwd', (req, res) => {
         res.status(200).send("<body><h1>Email Verified.</h1><br><p>You will start recieving alerts</p>")
     }).catch((err) => {
         console.log(err);
-        res.status(400).json({err: "internal"})
+        res.status(400).json({ err: "internal" })
     })
 })
 

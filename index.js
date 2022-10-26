@@ -53,6 +53,35 @@ let transporter = nodemailer.createTransport({
 var randomstring = require("randomstring");
 
 
+// Data Params
+Range = [
+    {
+        "L0": 600,
+        "L1": 5000
+    },
+    {  
+        "L0": 100,
+        "L1": 300 
+    },
+    {
+        "L0": 1000,
+        "L1": 1000
+    },
+    {
+        "L0": 1000,
+        "L1": 1000
+    },
+    {
+        "L0": 12,
+        "L1": 35
+    },
+    {
+        "L0": 50,
+        "L1": 150
+    }
+]
+
+
 
 app.get('/api/data/:num_inst', (req, res) => {
     const instances = req.params.num_inst
@@ -82,6 +111,7 @@ app.post('/api/data', jsonParser, (req, res) => {
         return res.status(400).json({ error: 'Authentication Failed' })
     }
     console.log(body);
+    
     const new_data_in = new DataModel({
         date: new Date(),
         CO2: body[1],
@@ -99,6 +129,41 @@ app.post('/api/data', jsonParser, (req, res) => {
         console.log("Couldnt add to database")
         console.log(err)
     })
+
+    var flag=false
+    for (let i = 1; i < 7; i++) {
+        if(body[i] >= Range[i-1].L1){
+            flag=true
+            break
+        }
+    }
+    if(flag){
+
+
+        EmailModel.find({Validated: true}).then((result) => {
+            result.forEach(element => {
+                var mailOptions = {
+                    from: gmail_username,
+                    to: element.email,
+                    subject: 'Alert',
+                    text: `We found toxic levels of gasses/Particulate matter at our node.
+                            CO2: ${body[1]}
+                            VOC: ${body[2]}
+                            Temperature: ${body[3]}
+                            Humidity: ${body[4]}
+                            PM 2.5: ${body[5]}
+                            PM 10: ${body[6]}
+                            `,
+                }
+
+                transporter.sendMail(mailOptions).then(() => {
+                    console.log("Sent alerting mail to", element.email);
+                }).catch((err) => {
+                    console.log("SOme error in sending email to",element.email);
+                })
+            });
+        })
+    }
 })
 
 app.post('/api/email/', jsonParser, (req, res) => {

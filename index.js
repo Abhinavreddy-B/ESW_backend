@@ -59,9 +59,9 @@ Range = [
         "L0": 600,
         "L1": 5000
     },
-    {  
+    {
         "L0": 100,
-        "L1": 300 
+        "L1": 300
     },
     {
         "L0": 1000,
@@ -99,6 +99,7 @@ app.get('/api/data/:num_inst', (req, res) => {
     })
 })
 
+var alreadySent = false
 app.post('/api/data', jsonParser, (req, res) => {
     if (req.body === undefined) {
         return res.status(400).json({ error: 'content missing' })
@@ -111,7 +112,7 @@ app.post('/api/data', jsonParser, (req, res) => {
         return res.status(400).json({ error: 'Authentication Failed' })
     }
     console.log(body);
-    
+
     const new_data_in = new DataModel({
         date: new Date(),
         CO2: body[1],
@@ -130,23 +131,23 @@ app.post('/api/data', jsonParser, (req, res) => {
         console.log(err)
     })
 
-    var flag=false
+    var flag = false
     for (let i = 1; i < 7; i++) {
-        if(body[i] >= Range[i-1].L1){
-            flag=true
+        if (body[i] >= Range[i - 1].L1) {
+            flag = true
             break
         }
     }
-    if(flag){
-
-
-        EmailModel.find({Validated: true}).then((result) => {
-            result.forEach(element => {
-                var mailOptions = {
-                    from: gmail_username,
-                    to: element.email,
-                    subject: 'Alert',
-                    text: `We found toxic levels of gasses/Particulate matter at our node.
+    if (flag) {
+        if (alreadySent === false) {
+            alreadySent = true
+            EmailModel.find({ Validated: true }).then((result) => {
+                result.forEach(element => {
+                    var mailOptions = {
+                        from: gmail_username,
+                        to: element.email,
+                        subject: 'Alert',
+                        text: `We found toxic levels of gasses/Particulate matter at our node.
                             CO2: ${body[1]}
                             VOC: ${body[2]}
                             Temperature: ${body[3]}
@@ -154,15 +155,18 @@ app.post('/api/data', jsonParser, (req, res) => {
                             PM 2.5: ${body[5]}
                             PM 10: ${body[6]}
                             `,
-                }
+                    }
 
-                transporter.sendMail(mailOptions).then(() => {
-                    console.log("Sent alerting mail to", element.email);
-                }).catch((err) => {
-                    console.log("SOme error in sending email to",element.email);
-                })
-            });
-        })
+                    transporter.sendMail(mailOptions).then(() => {
+                        console.log("Sent alerting mail to", element.email);
+                    }).catch((err) => {
+                        console.log("SOme error in sending email to", element.email);
+                    })
+                });
+            })
+        }
+    }else{
+        alreadySent=false
     }
 })
 
@@ -188,7 +192,7 @@ app.post('/api/email/', jsonParser, (req, res) => {
                 }
 
                 transporter.sendMail(mailOptions)
-                res.status(200).json({"status": 2})
+                res.status(200).json({ "status": 2 })
             }
         } else {
             const new_email = new EmailModel({
@@ -210,7 +214,7 @@ app.post('/api/email/', jsonParser, (req, res) => {
             transporter.sendMail(mailOptions).then(() => {
                 new_email.save().then(result => {
                     console.log('Saved Email , (unverified)');
-                    res.status(200).json({"status": 2})
+                    res.status(200).json({ "status": 2 })
                 }).catch(err => {
                     console.log("Couldnt add to database")
                     res.status(400).json("Succesfull");
@@ -221,7 +225,7 @@ app.post('/api/email/', jsonParser, (req, res) => {
             })
         }
     }).catch((err) => {
-        console.log("find error",err)
+        console.log("find error", err)
     })
 })
 

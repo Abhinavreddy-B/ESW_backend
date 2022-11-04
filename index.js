@@ -57,7 +57,7 @@ var randomstring = require("randomstring");
 Range = [
     {
         "L0": 600,
-        "L1": 5000
+        "L1": 2000
     },
     {
         "L0": 100,

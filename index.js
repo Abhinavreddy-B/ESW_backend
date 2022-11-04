@@ -147,13 +147,15 @@ app.post('/api/data', jsonParser, (req, res) => {
                         from: gmail_username,
                         to: element.email,
                         subject: 'Alert',
-                        text: `We found toxic levels of gasses/Particulate matter at our node.
+                        text: `Unsafe Levels of Air Pollutants Have been detected at node location
                             CO2: ${body[1]}
                             VOC: ${body[2]}
                             Temperature: ${body[3]}
                             Humidity: ${body[4]}
                             PM 2.5: ${body[5]}
                             PM 10: ${body[6]}
+
+                    Visit https://indoor-air-pollution-18.onrender.com/ to know more.
                             `,
                     }
 

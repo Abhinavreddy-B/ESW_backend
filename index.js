@@ -162,6 +162,7 @@ app.post('/api/data', jsonParser, (req, res) => {
                     transporter.sendMail(mailOptions).then(() => {
                         console.log("Sent alerting mail to", element.email);
                     }).catch((err) => {
+                        console.log(err);
                         console.log("SOme error in sending email to", element.email);
                     })
                 });

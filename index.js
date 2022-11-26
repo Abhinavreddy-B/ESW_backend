@@ -88,9 +88,6 @@ app.get('/api/data/:num_inst', (req, res) => {
     if (instances === undefined) {
         res.status(400).json({ error: 'No of instances unspecified' })
     }
-    if (instances > 60) {
-        res.status(400).json({ error: 'Too many instances requested, Not possible' })
-    }
     DataModel.find({}).sort({ _id: -1 }).limit(instances).then(result => {
         res.json(result.reverse());
     }).catch(err => {
@@ -165,6 +162,7 @@ app.post('/api/data', jsonParser, (req, res) => {
                         console.log(err);
                         console.log("SOme error in sending email to", element.email);
                     })
+                    
                 });
             })
         }

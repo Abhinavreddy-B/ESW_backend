@@ -88,7 +88,7 @@ app.get('/api/data/:num_inst', (req, res) => {
     if (instances === undefined) {
         res.status(400).json({ error: 'No of instances unspecified' })
     }
-    DataModel.find({}).sort({ _id: -1 }).limit(instances).then(result => {
+    DataModel.find({date: {$gt: new Date('2022-11-20T12:00:00Z')}}).sort({ _id: -1 }).limit(instances).then(result => {
         res.json(result.reverse());
     }).catch(err => {
         console.log(err);

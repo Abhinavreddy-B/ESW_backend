@@ -1,4 +1,4 @@
-# This is the Frontend Code for [This](https://github.com/Abhinavreddy-B/ESW_project) Project
+# This is the Backend Code for [This](https://github.com/Abhinavreddy-B/ESW_project) Project
 
 # Visit the site [Here](https://indoor-air-pollution-18.onrender.com/)
 
